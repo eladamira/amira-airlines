@@ -1514,14 +1514,21 @@
         Removing someone's access later is the same screen -> Delete user.
 -->
 <script>
-  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-  const SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY';
+  const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_8bvhhb7cb8VFHbWFaysyKg_fy8w02JJ';
 
   const authReady = (function(){
     if(SUPABASE_URL.includes('YOUR_PROJECT')){
       // Not configured yet — fail safe by leaving the login gate up rather than exposing the site.
       document.getElementById('loginGate').classList.remove('checking');
       document.getElementById('loginError').textContent = 'ההתחברות טרם הוגדרה — פנה למנהל האתר.';
+      document.getElementById('loginError').classList.add('show');
+      return null;
+    }
+    if(typeof window.supabase === 'undefined'){
+      // The auth SDK failed to load (network issue, ad-blocker, etc.) — fail safe, not open.
+      document.getElementById('loginGate').classList.remove('checking');
+      document.getElementById('loginError').textContent = 'שירות ההתחברות לא נטען. רענן את הדף ונסה שוב.';
       document.getElementById('loginError').classList.add('show');
       return null;
     }
@@ -1545,7 +1552,12 @@
       const { error } = await client.auth.signInWithPassword({ email, password });
       btn.disabled = false; btn.textContent = originalLabel;
       if(error){
-        errEl.textContent = 'אימייל או סיסמה שגויים';
+        console.error('Supabase sign-in error:', error);
+        let msg = 'אימייל או סיסמה שגויים';
+        if(/email not confirmed/i.test(error.message)) msg = 'המשתמש לא מאושר — חסר לסמן "Auto Confirm User" ביצירת המשתמש ב-Supabase.';
+        else if(/invalid api key|jwt/i.test(error.message)) msg = 'שגיאת הגדרה (מפתח לא תקין) — בדוק את SUPABASE_URL וה-ANON_KEY בקוד.';
+        else if(/failed to fetch|network/i.test(error.message)) msg = 'בעיית תקשורת עם שרת ההתחברות — בדוק חיבור אינטרנט ונסה שוב.';
+        errEl.textContent = msg + ' (' + error.message + ')';
         errEl.classList.add('show');
       } else {
         document.body.classList.add('authed');
