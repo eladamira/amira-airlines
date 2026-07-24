@@ -478,14 +478,7 @@
   .faq-a p{padding:0 4px 26px;color:var(--muted);font-size:.92rem;max-width:640px;}
 
   /* ---------- contact ---------- */
-  .contact-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;}
-  .contact-info h2{font-size:clamp(1.9rem,3vw,2.6rem);margin:18px 0 20px;}
-  .contact-info p{color:var(--muted);margin-bottom:36px;}
-  .contact-line{display:flex;gap:14px;align-items:center;margin-bottom:18px;font-size:.95rem;}
-  .contact-line .clabel{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:.1em;width:90px;flex-shrink:0;}
-  .contact-line a{color:var(--ivory);border-bottom:1px solid var(--hairline);}
-  .contact-line a:hover{color:var(--gold);border-color:var(--gold);}
-  .response-note{font-family:var(--mono);font-size:.78rem;color:var(--gold-bright);margin-top:24px;}
+  .contact-form-wrap{max-width:640px;margin:0 auto;}
 
   form.lead-form{background:var(--panel);border:1px solid var(--hairline);padding:44px;}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
@@ -569,7 +562,6 @@
     .process-grid::before{display:none;}
     .policy-grid{grid-template-columns:1fr;}
     .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:220px;}
-    .contact-grid{grid-template-columns:1fr;}
     .form-row{grid-template-columns:1fr;}
     .footer-top{flex-direction:column;}
   }
@@ -1299,17 +1291,12 @@
 <!-- ================= CONTACT ================= -->
 <section id="contact" class="section-pad">
   <div class="container">
-    <div class="contact-grid">
-      <div class="contact-info reveal">
-        <div class="eyebrow" data-i18n="contact.eyebrow">בואו נתחיל</div>
-        <h2 data-i18n="contact.h2">בקשו הצעת מחיר</h2>
-        <p data-i18n="contact.p">מלאו את הפרטים ונחזור אליכם באופן אישי לתיאום הטיסה — ללא כל התחייבות.</p>
-        <div class="contact-line"><span class="clabel" data-i18n="contact.phoneLabel">טלפון</span><a href="tel:+972500000000">[להשלמה]</a></div>
-        <div class="contact-line"><span class="clabel" data-i18n="contact.emailLabel">אימייל</span><a href="mailto:fly@amira-airlines.com">fly@amira-airlines.com</a></div>
-        <div class="contact-line"><span class="clabel" data-i18n="contact.baseLabel">בסיס</span><span data-i18n="contact.baseVal">שדה תעופה הרצליה (LLHZ)</span></div>
-        <p class="response-note" data-i18n="contact.responseNote"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" style="vertical-align:-2px;margin-inline-end:5px;"><circle cx="8" cy="8" r="6.4"/><path d="M8 4.6V8.3L10.6 10"/></svg>בדרך כלל עונים תוך שעתיים</p>
-      </div>
-
+    <div class="section-head reveal">
+      <div class="eyebrow" style="justify-content:center" data-i18n="contact.eyebrow">בואו נתחיל</div>
+      <h2 data-i18n="contact.h2">בקשו הצעת מחיר</h2>
+      <p data-i18n="contact.p">מלאו את הפרטים ונחזור אליכם באופן אישי לתיאום הטיסה — ללא כל התחייבות.</p>
+    </div>
+    <div class="contact-form-wrap">
       <form class="lead-form reveal" id="leadForm" novalidate>
         <div class="form-summary" id="formSummary"></div>
         <div id="formFields">
@@ -1646,7 +1633,7 @@
       "faq.q5":"האם החברה מורשית לבצע טיסות מסחריות?","faq.a5":"AMIRA AIRLINES נמצאת בתהליכי רישוי מול רשות התעופה האזרחית. פתיחת ההזמנות בפועל תוכרז באופן רשמי באתר.",
       "faq.q6":"אפשר לנחות ולהישאר ביעד לזמן מה?","faq.a6":"כן — לאחר בחירת יעד, ניתן להוסיף עצירה על הקרקע באורך של עד 4 שעות, בעלות של 60 ₪ לכל שעת עצירה. משך העצירה לבחירתכם, והמחיר מתעדכן במחשבון בזמן אמת.",
       "contact.eyebrow":"בואו נתחיל","contact.h2":"בקשו הצעת מחיר","contact.p":"מלאו את הפרטים ונחזור אליכם באופן אישי לתיאום הטיסה — ללא כל התחייבות.",
-      "contact.phoneLabel":"טלפון","contact.emailLabel":"אימייל","contact.baseLabel":"בסיס","contact.baseVal":"שדה תעופה הרצליה (LLHZ)","contact.responseNote":"<svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" style=\"vertical-align:-2px;margin-inline-end:5px;\"><circle cx=\"8\" cy=\"8\" r=\"6.4\"/><path d=\"M8 4.6V8.3L10.6 10\"/></svg>בדרך כלל עונים תוך שעתיים",
+      "contact.baseVal":"שדה תעופה הרצליה (LLHZ)",
       "form.name":"שם מלא","form.phone":"טלפון","form.email":"אימייל","form.date":"תאריך מועדף","form.pax":"כמה נוסעים","form.aircraftChosen":"מטוס נבחר","form.notes":"הערות נוספות","form.notesPh":"ספרו לנו עוד על החוויה שאתם מדמיינים...","form.priceConfirmLabel":"מחיר משוער לטיסה שבחרתם","form.reassure":"ללא התחייבות · ביטול חינם עד 48 שעות לפני הטיסה",
       "form.err.name":"נא למלא שם מלא","form.err.phone":"נא למלא מספר טלפון תקין","form.err.email":"נא למלא כתובת אימייל תקינה",
       "form.submit":"שליחת בקשה","form.successH":"הבקשה נשלחה בהצלחה","form.successP":"תודה! נחזור אליכם תוך 24 שעות לתיאום הטיסה.",
@@ -1716,7 +1703,7 @@
       "faq.q5":"Is the company licensed for commercial flights?","faq.a5":"AMIRA AIRLINES is in the process of licensing with the Israel Civil Aviation Authority. Live bookings will be formally announced on the site.",
       "faq.q6":"Can we land and stay at the destination for a while?","faq.a6":"Yes — after choosing a destination, you can add a ground stopover of up to 4 hours, at ₪60 per hour. The stopover length is your choice, and the price updates live in the calculator.",
       "contact.eyebrow":"Let's Begin","contact.h2":"Request a Quote","contact.p":"Fill in your details and we'll get back to you personally to coordinate the flight — no commitment required.",
-      "contact.phoneLabel":"Phone","contact.emailLabel":"Email","contact.baseLabel":"Base","contact.baseVal":"Herzliya Airfield (LLHZ)","contact.responseNote":"<svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.3\" style=\"vertical-align:-2px;margin-inline-end:5px;\"><circle cx=\"8\" cy=\"8\" r=\"6.4\"/><path d=\"M8 4.6V8.3L10.6 10\"/></svg>We typically respond within 2 hours",
+      "contact.baseVal":"Herzliya Airfield (LLHZ)",
       "form.name":"Full Name","form.phone":"Phone","form.email":"Email","form.date":"Preferred Date","form.pax":"Passengers","form.aircraftChosen":"Aircraft Chosen","form.notes":"Additional Notes","form.notesPh":"Tell us more about the experience you're imagining...","form.priceConfirmLabel":"Estimated price for your selected flight","form.reassure":"No commitment · Free cancellation up to 48 hours before the flight",
       "form.err.name":"Please enter your full name","form.err.phone":"Please enter a valid phone number","form.err.email":"Please enter a valid email address",
       "form.submit":"Send Request","form.successH":"Request Sent Successfully","form.successP":"Thank you! We'll be in touch within 24 hours to coordinate your flight.",
