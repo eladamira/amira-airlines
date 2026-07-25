@@ -1,0 +1,96 @@
+  const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_8bvhhb7cb8VFHbWFaysyKg_fy8w02JJ';
+  // Supabase requires an "email" internally, but we let YOU create plain usernames.
+  // Whatever username you type (both here at login, and when creating users in the
+  // Supabase dashboard) gets this fake domain appended automatically — it's never
+  // used to send real email, it just satisfies Supabase's required format.
+  const USERNAME_DOMAIN = '@amira-users.local';
+  const SESSION_HOURS = 24; // force re-login after this many hours, regardless of Supabase's own token lifetime
+  const LOGIN_TIME_KEY = 'amira_login_time';
+
+  const authReady = (function(){
+    if(SUPABASE_URL.includes('YOUR_PROJECT')){
+      // Not configured yet — fail safe by leaving the login gate up rather than exposing the site.
+      document.getElementById('loginGate').classList.remove('checking');
+      document.getElementById('loginError').textContent = 'ההתחברות טרם הוגדרה — פנה למנהל האתר.';
+      document.getElementById('loginError').classList.add('show');
+      return null;
+    }
+    if(typeof window.supabase === 'undefined'){
+      // The auth SDK failed to load (network issue, ad-blocker, etc.) — fail safe, not open.
+      document.getElementById('loginGate').classList.remove('checking');
+      document.getElementById('loginError').textContent = 'שירות ההתחברות לא נטען. רענן את הדף ונסה שוב.';
+      document.getElementById('loginError').classList.add('show');
+      return null;
+    }
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.amiraDB = client; // exposed so app.js can query the database (reviews, etc.)
+
+    async function forceSignOut(){
+      try{ await client.auth.signOut(); }catch(err){ /* ignore */ }
+      localStorage.removeItem(LOGIN_TIME_KEY);
+      document.body.classList.remove('authed');
+      document.getElementById('loginGate').classList.remove('checking');
+    }
+
+    async function refreshAuthState(){
+      const { data: { session } } = await client.auth.getSession();
+      if(!session){
+        document.body.classList.remove('authed');
+        document.body.classList.remove('is-admin');
+        window.amiraIsAdmin = false;
+        document.getElementById('loginGate').classList.remove('checking');
+        return;
+      }
+      const loginTime = parseInt(localStorage.getItem(LOGIN_TIME_KEY) || '0', 10);
+      const hoursElapsed = (Date.now() - loginTime) / 3600000;
+      if(!loginTime || hoursElapsed > SESSION_HOURS){
+        await forceSignOut();
+        return;
+      }
+      window.amiraIsAdmin = session.user?.user_metadata?.role === 'admin';
+      document.body.classList.toggle('is-admin', window.amiraIsAdmin);
+      document.body.classList.add('authed');
+      document.getElementById('loginGate').classList.remove('checking');
+      window.dispatchEvent(new CustomEvent('amira-auth-ready'));
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const username = document.getElementById('login_email').value.trim();
+      const email = username.includes('@') ? username : username + USERNAME_DOMAIN;
+      const password = document.getElementById('login_password').value;
+      const errEl = document.getElementById('loginError');
+      errEl.classList.remove('show');
+      const btn = e.target.querySelector('button[type=submit]');
+      const originalLabel = btn.textContent;
+      btn.disabled = true; btn.textContent = 'מתחבר...';
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      btn.disabled = false; btn.textContent = originalLabel;
+      if(error){
+        console.error('Supabase sign-in error:', error);
+        let msg = 'שם פרטי או סיסמה שגויים';
+        if(/email not confirmed/i.test(error.message)) msg = 'המשתמש לא מאושר — חסר לסמן "Auto Confirm User" ביצירת המשתמש ב-Supabase.';
+        else if(/invalid api key|jwt/i.test(error.message)) msg = 'שגיאת הגדרה (מפתח לא תקין) — בדוק את SUPABASE_URL וה-ANON_KEY בקוד.';
+        else if(/failed to fetch|network/i.test(error.message)) msg = 'בעיית תקשורת עם שרת ההתחברות — בדוק חיבור אינטרנט ונסה שוב.';
+        errEl.textContent = msg + ' (' + error.message + ')';
+        errEl.classList.add('show');
+      } else {
+        localStorage.setItem(LOGIN_TIME_KEY, String(Date.now()));
+        document.body.classList.add('authed');
+      }
+    });
+
+    client.auth.onAuthStateChange(()=>refreshAuthState());
+    refreshAuthState();
+    // Re-check every few minutes while the tab stays open, so the 24h cutoff
+    // still kicks in even if nobody reloads the page.
+    setInterval(refreshAuthState, 5 * 60 * 1000);
+    return client;
+  })();
+
+  async function amiraSignOut(){
+    if(authReady) await authReady.auth.signOut();
+    localStorage.removeItem('amira_login_time');
+    document.body.classList.remove('authed');
+  }
