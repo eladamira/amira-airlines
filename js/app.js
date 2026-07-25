@@ -901,6 +901,8 @@
     document.body.style.overflow = '';
   }
   if(adminTrigger) adminTrigger.addEventListener('click', openAdmin);
+  const adminTriggerMobile = document.getElementById('adminTriggerMobile');
+  if(adminTriggerMobile) adminTriggerMobile.addEventListener('click', (e)=>{ e.preventDefault(); openAdmin(); });
   adminModal.addEventListener('click', (e)=>{
     if(e.target.closest('[data-admin-close]')) closeAdmin();
     const approveId = e.target.closest('[data-approve]')?.getAttribute('data-approve');
