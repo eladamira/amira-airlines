@@ -1,4 +1,4 @@
-  const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
+const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_8bvhhb7cb8VFHbWFaysyKg_fy8w02JJ';
   // Supabase requires an "email" internally, but we let YOU create plain usernames.
   // Whatever username you type (both here at login, and when creating users in the
@@ -65,7 +65,7 @@
       const btn = e.target.querySelector('button[type=submit]');
       const originalLabel = btn.textContent;
       btn.disabled = true; btn.textContent = 'מתחבר...';
-      const { error } = await client.auth.signInWithPassword({ email, password });
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
       btn.disabled = false; btn.textContent = originalLabel;
       if(error){
         console.error('Supabase sign-in error:', error);
@@ -77,7 +77,12 @@
         errEl.classList.add('show');
       } else {
         localStorage.setItem(LOGIN_TIME_KEY, String(Date.now()));
+        // Use this response's own fresh user data right away, rather than waiting on a
+        // separate async refreshAuthState() call that can lag a beat behind on first login.
+        window.amiraIsAdmin = data.session?.user?.user_metadata?.role === 'admin';
+        document.body.classList.toggle('is-admin', window.amiraIsAdmin);
         document.body.classList.add('authed');
+        window.dispatchEvent(new CustomEvent('amira-auth-ready'));
       }
     });
 
