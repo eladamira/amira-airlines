@@ -24,6 +24,7 @@
       return null;
     }
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.amiraDB = client; // exposed so app.js can query the database (reviews, etc.)
 
     async function forceSignOut(){
       try{ await client.auth.signOut(); }catch(err){ /* ignore */ }
@@ -36,6 +37,8 @@
       const { data: { session } } = await client.auth.getSession();
       if(!session){
         document.body.classList.remove('authed');
+        document.body.classList.remove('is-admin');
+        window.amiraIsAdmin = false;
         document.getElementById('loginGate').classList.remove('checking');
         return;
       }
@@ -45,8 +48,11 @@
         await forceSignOut();
         return;
       }
+      window.amiraIsAdmin = session.user?.user_metadata?.role === 'admin';
+      document.body.classList.toggle('is-admin', window.amiraIsAdmin);
       document.body.classList.add('authed');
       document.getElementById('loginGate').classList.remove('checking');
+      window.dispatchEvent(new CustomEvent('amira-auth-ready'));
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
