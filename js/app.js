@@ -37,7 +37,7 @@
       "reviews.formH":"כתבו ביקורת","reviews.name":"שם","reviews.rating":"דירוג","reviews.text":"הביקורת שלכם","reviews.textPh":"ספרו לנו איך הייתה החוויה...",
       "reviews.err.name":"נא למלא שם","reviews.err.rating":"נא לבחור דירוג","reviews.err.text":"נא לכתוב כמה מילים",
       "reviews.submit":"שליחת ביקורת",
-      "reviews.successH":"תודה על הביקורת!","reviews.successP":"היא תיבדק ותתפרסם בקרוב.",
+      "reviews.successH":"תודה על הביקורת!","reviews.successP":"",
       "process.eyebrow":"מהלב, אל השמיים","process.h2":"איך זה עובד",
       "process.s1h":"בחירה ובקשה","process.s1p":"בוחרים מסלול, משך זמן ויעד, ושולחים בקשה דרך האתר",
       "process.s2h":"תיאום אישי","process.s2p":"חוזרים אליכם תוך זמן קצר לתיאום מועד ופרטים סופיים",
@@ -106,7 +106,7 @@
       "reviews.formH":"Write a Review","reviews.name":"Name","reviews.rating":"Rating","reviews.text":"Your Review","reviews.textPh":"Tell us how the experience was...",
       "reviews.err.name":"Please enter your name","reviews.err.rating":"Please choose a rating","reviews.err.text":"Please write a few words",
       "reviews.submit":"Submit Review",
-      "reviews.successH":"Thank you for your review!","reviews.successP":"It will be checked and published soon.",
+      "reviews.successH":"Thank you for your review!","reviews.successP":"",
       "process.eyebrow":"From the Heart, To the Sky","process.h2":"How It Works",
       "process.s1h":"Choose & Request","process.s1p":"Select your route, duration and destination, and send a request through the site",
       "process.s2h":"Personal Coordination","process.s2p":"We'll get back to you shortly to confirm the date and final details",
@@ -747,8 +747,7 @@
   async function renderReviews(){
     const grid = document.getElementById('reviewsGrid');
     const emptyMsg = () => {
-      const msg = currentLang==='he' ? 'עדיין אין ביקורות כאן — היו הראשונים לשתף את החוויה שלכם.' : 'No reviews here yet — be the first to share your experience.';
-      grid.innerHTML = `<div class="reviews-empty"><p>${msg}</p></div>`;
+      grid.innerHTML = '';
     };
     if(!window.amiraDB){
       emptyMsg();
@@ -756,11 +755,10 @@
     }
     let data, error;
     try{
-      ({ data, error } = await window.amiraDB
-        .from('reviews')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false }));
+      ({ data, error } = await withTimeout(
+        window.amiraDB.from('reviews').select('*').eq('status', 'approved').order('created_at', { ascending: false }),
+        8000, 'טעינת ביקורות'
+      ));
     }catch(err){ error = err; }
     if(error || !data || data.length === 0){
       emptyMsg();
@@ -851,19 +849,32 @@
   const adminModal = document.getElementById('adminModal');
   const adminTrigger = document.getElementById('adminTrigger');
 
+  function withTimeout(promise, ms, label){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} — תם הזמן (${ms/1000}s), בדוק חיבור אינטרנט או הגדרות Supabase`)), ms))
+    ]);
+  }
+
   async function loadAdminReviews(){
     const list = document.getElementById('adminReviewsList');
     list.innerHTML = '<p class="admin-empty">טוען...</p>';
+    if(!window.amiraDB){
+      list.innerHTML = '<p class="admin-empty">שגיאה: החיבור למסד הנתונים לא זמין. רענן את הדף ונסה שוב.</p>';
+      return;
+    }
     let data, error;
     try{
-      ({ data, error } = await window.amiraDB
-        .from('reviews')
-        .select('*')
-        .order('status', { ascending: true })
-        .order('created_at', { ascending: false }));
+      ({ data, error } = await withTimeout(
+        window.amiraDB.from('reviews').select('*')
+          .order('status', { ascending: true })
+          .order('created_at', { ascending: false }),
+        8000, 'טעינת ביקורות'
+      ));
     }catch(err){ error = err; }
     if(error){
       list.innerHTML = `<p class="admin-empty">שגיאה בטעינת ביקורות: ${error.message}</p>`;
+      console.error('loadAdminReviews error:', error);
       return;
     }
     if(!data || data.length === 0){
