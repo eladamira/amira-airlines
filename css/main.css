@@ -588,6 +588,9 @@
   body.is-admin .admin-link:hover{color:var(--gold-bright);border-color:var(--gold);}
   @media (max-width:980px){ .admin-link{display:none!important;} }
 
+  .admin-link-mobile{display:none;}
+  body.is-admin .admin-link-mobile{display:block;color:var(--gold)!important;}
+
   .admin-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:24px;}
   .admin-modal.open{display:flex;}
   .admin-panel{
