@@ -23,6 +23,7 @@
 <noscript><style>.reveal{opacity:1!important;transform:none!important;}</style></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
+<body>
 <div id="loginGate" class="checking">
   <div class="login-glow"></div>
   <div class="login-card">
@@ -68,6 +69,7 @@
       <a href="#contact" data-i18n="nav.contact">צור קשר</a>
     </nav>
     <div class="nav-right">
+      <button class="admin-link" id="adminTrigger" type="button">ניהול ביקורות</button>
       <button class="logout-link" onclick="amiraSignOut()" type="button">התנתקות</button>
       <button class="lang-toggle" id="langToggle">EN</button>
       <a href="#configurator" class="btn btn-gold btn-sm" data-i18n="nav.cta">בקש הצעת מחיר</a>
@@ -802,9 +804,16 @@
           <h4>8. Contact for Privacy Matters</h4>
           <p>For questions, or requests to review, correct or delete information, please contact us at <a href="mailto:fly@amira-airlines.com">fly@amira-airlines.com</a>.</p>
         </div>
-      </div>
-    </div>
+<!-- ================= ADMIN: REVIEW MODERATION ================= -->
+<div class="admin-modal" id="adminModal" aria-hidden="true">
+  <div class="legal-backdrop" data-admin-close></div>
+  <div class="admin-panel" role="dialog" aria-modal="true">
+    <button class="legal-close" data-admin-close aria-label="סגור" type="button"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 3L13 13M13 3L3 13"/></svg></button>
+    <h3>ניהול ביקורות</h3>
+    <p class="admin-sub">ביקורות ממתינות מופיעות ראשונות. אשר כדי לפרסם באתר, או מחק לצמיתות.</p>
+    <div id="adminReviewsList" class="admin-reviews-list"></div>
   </div>
+</div>
 </div>
 </div><!-- /.site-wrap -->
 
