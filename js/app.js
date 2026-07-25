@@ -743,24 +743,32 @@
     box.classList.add('show');
   }
 
-  // ---------------- reviews & ratings ----------------
-  // 🔒 Publishing/removing reviews happens ONLY here, in the code — there is no public delete
-  // button, by design, since a static site has no secure way to offer one. Add an object per
-  // approved review: { name:'דנה כהן', rating:5, text:'חוויה מדהימה, ממליצה בחום!' }
-  const FEATURED_REVIEWS = [
-    // { name:'', rating:5, text:'' },
-  ];
-
-  function renderReviews(){
+  // ---------------- reviews & ratings (Supabase-backed) ----------------
+  async function renderReviews(){
     const grid = document.getElementById('reviewsGrid');
-    if(FEATURED_REVIEWS.length===0){
+    const emptyMsg = () => {
       const msg = currentLang==='he' ? 'עדיין אין ביקורות כאן — היו הראשונים לשתף את החוויה שלכם.' : 'No reviews here yet — be the first to share your experience.';
       grid.innerHTML = `<div class="reviews-empty"><p>${msg}</p></div>`;
+    };
+    if(!window.amiraDB){
+      emptyMsg();
       return;
     }
-    grid.innerHTML = FEATURED_REVIEWS.map(r=>{
+    let data, error;
+    try{
+      ({ data, error } = await window.amiraDB
+        .from('reviews')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false }));
+    }catch(err){ error = err; }
+    if(error || !data || data.length === 0){
+      emptyMsg();
+      return;
+    }
+    grid.innerHTML = data.map(r=>{
       const stars = Array.from({length:5}, (_,i)=>`<span style="opacity:${i<r.rating?1:0.25}">${ICON_STAR}</span>`).join('');
-      return `<div class="review-card"><div class="review-stars">${stars}</div><p class="review-text">${r.text}</p><div class="review-name">${r.name}</div></div>`;
+      return `<div class="review-card"><div class="review-stars">${stars}</div><p class="review-text">${r.review_text}</p><div class="review-name">${r.name}</div></div>`;
     }).join('');
   }
 
@@ -800,39 +808,118 @@
       if(!validName) r_name.focus(); else if(!validRating) starInput.focus(); else r_text.focus();
       return;
     }
-    const payload = {
-      name: r_name.value.trim(),
-      rating: `${selectedRating}/5`,
-      review: r_text.value.trim(),
-      _subject: `ביקורת חדשה באתר — ${r_name.value.trim()} (${selectedRating}/5)`
-    };
+    const name = r_name.value.trim();
+    const reviewText = r_text.value.trim();
     const submitBtn = e.target.querySelector('button[type="submit"]');
     const originalLabel = submitBtn.textContent;
     submitBtn.textContent = currentLang==='he' ? 'שולח...' : 'Sending...';
     submitBtn.disabled = true;
+
     let success = false;
-    if(!FORM_ENDPOINT.includes('YOUR_FORM_ID')){
+    if(window.amiraDB){
       try{
-        const res = await fetch(FORM_ENDPOINT, {
-          method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'}, body:JSON.stringify(payload)
+        const { error } = await window.amiraDB.from('reviews').insert({
+          name, rating: selectedRating, review_text: reviewText, status: 'pending'
         });
-        success = res.ok;
+        success = !error;
       }catch(err){ success = false; }
     }
+    // Best-effort email ping so the admin knows a review is waiting — not the source of truth.
+    if(!FORM_ENDPOINT.includes('YOUR_FORM_ID')){
+      fetch(FORM_ENDPOINT, {
+        method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ name, rating: `${selectedRating}/5`, review: reviewText, _subject: `ביקורת חדשה ממתינה לאישור — ${name} (${selectedRating}/5)` })
+      }).catch(()=>{});
+    }
+
     submitBtn.disabled = false;
     submitBtn.textContent = originalLabel;
     if(success){
       e.target.style.display = 'none';
       document.getElementById('reviewSuccess').classList.add('show');
     } else {
+      const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('ביקורת חדשה — ' + name)}&body=${encodeURIComponent(reviewText)}`;
       const box = document.getElementById('reviewFallback');
-      const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(payload._subject)}&body=${encodeURIComponent(payload.review)}`;
       box.innerHTML = currentLang==='he'
         ? `<p>לא הצלחנו לשלוח את הביקורת אוטומטית. שלחו לנו אותה ישירות:</p><div class="fallback-links"><a href="${mailHref}" class="btn btn-ghost btn-sm">שליחה במייל</a></div>`
         : `<p>We couldn't send the review automatically. Please send it to us directly:</p><div class="fallback-links"><a href="${mailHref}" class="btn btn-ghost btn-sm">Send by Email</a></div>`;
       box.classList.add('show');
     }
   });
+
+  // ---------------- admin: review moderation panel ----------------
+  const adminModal = document.getElementById('adminModal');
+  const adminTrigger = document.getElementById('adminTrigger');
+
+  async function loadAdminReviews(){
+    const list = document.getElementById('adminReviewsList');
+    list.innerHTML = '<p class="admin-empty">טוען...</p>';
+    let data, error;
+    try{
+      ({ data, error } = await window.amiraDB
+        .from('reviews')
+        .select('*')
+        .order('status', { ascending: true })
+        .order('created_at', { ascending: false }));
+    }catch(err){ error = err; }
+    if(error){
+      list.innerHTML = `<p class="admin-empty">שגיאה בטעינת ביקורות: ${error.message}</p>`;
+      return;
+    }
+    if(!data || data.length === 0){
+      list.innerHTML = '<p class="admin-empty">אין ביקורות עדיין.</p>';
+      return;
+    }
+    list.innerHTML = data.map(r=>{
+      const stars = Array.from({length:5}, (_,i)=>`<span style="opacity:${i<r.rating?1:0.25}">${ICON_STAR}</span>`).join('');
+      const statusLabel = r.status === 'pending' ? 'ממתין לאישור' : 'מפורסם';
+      const approveBtn = r.status === 'pending' ? `<button class="admin-approve-btn" data-approve="${r.id}" type="button">אשר ופרסם</button>` : '';
+      return `<div class="admin-review-item ${r.status}">
+        <div class="admin-review-top">
+          <span class="admin-review-name">${r.name}</span>
+          <span class="admin-review-status">${statusLabel}</span>
+        </div>
+        <div class="admin-review-stars">${stars}</div>
+        <p class="admin-review-text">${r.review_text}</p>
+        <div class="admin-review-actions">
+          ${approveBtn}
+          <button class="admin-delete-btn" data-delete="${r.id}" type="button">מחק</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function openAdmin(){
+    adminModal.classList.add('open');
+    adminModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    loadAdminReviews();
+  }
+  function closeAdmin(){
+    adminModal.classList.remove('open');
+    adminModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  if(adminTrigger) adminTrigger.addEventListener('click', openAdmin);
+  adminModal.addEventListener('click', (e)=>{
+    if(e.target.closest('[data-admin-close]')) closeAdmin();
+    const approveId = e.target.closest('[data-approve]')?.getAttribute('data-approve');
+    const deleteId = e.target.closest('[data-delete]')?.getAttribute('data-delete');
+    if(approveId){
+      window.amiraDB.from('reviews').update({ status:'approved' }).eq('id', approveId)
+        .then(()=>{ loadAdminReviews(); renderReviews(); });
+    }
+    if(deleteId){
+      if(confirm('למחוק את הביקורת הזו לצמיתות?')){
+        window.amiraDB.from('reviews').delete().eq('id', deleteId)
+          .then(()=>{ loadAdminReviews(); renderReviews(); });
+      }
+    }
+  });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape' && adminModal.classList.contains('open')) closeAdmin();
+  });
+  window.addEventListener('amira-auth-ready', renderReviews);
 
   // ---------------- init ----------------
   restoreSelection();
