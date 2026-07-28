@@ -270,7 +270,7 @@
         </ul>
       </div>
     </div>
-    <p class="itin-note" data-i18n="itin.note">כל הזמנים הם דוגמה בלבד — כל טיסה נבנית לפי משך הזמן, היעד וההעדפות שתבחרו במחשבון.</p>
+    <p class="itin-note" data-i18n="itin.note">כל הזמנים הם דוגמה בלבד — כל טיסה נבנית לפי משך הזמן, היעד וההעדפות שתבחרו.</p>
   </div>
 </section>
 
@@ -281,13 +281,13 @@
   <div class="container">
     <div class="section-head reveal">
       <div class="eyebrow" style="justify-content:center" data-i18n="trip.eyebrow">בואו נטוס לשם</div>
-      <h2 data-i18n="trip.h2">שלושה טיולי יום מלאים</h2>
+      <h2 data-i18n="trip.h2">שלושה טיולים מלאים</h2>
       <p data-i18n="trip.p">דוגמאות אמיתיות שמשלבות טיסה, נחיתה, ועצירה בקרקע בזמן שאתם בוחרים — בדיוק כמו שהמחשבון למעלה מאפשר.</p>
     </div>
     <div class="trip-grid reveal">
       <div class="trip-card">
         <span class="trip-tag" data-i18n="trip.haifa.tag">מטוס 172 · טיול זוגי</span>
-        <h4 data-i18n="trip.haifa.h">יום בחיפה</h4>
+        <h4 data-i18n="trip.haifa.h">חיפה</h4>
         <p data-i18n="trip.haifa.p">ממריאים מהרצליה לחיפה לאורך קו החוף וההרים הירוקים של הכרמל — כ-25 דקות טיסה בכל כיוון. נוחתים בשדה התעופה ויורדים לטיול זוגי: גני הבאהאים, שוק תלפיות, או חוף הכרמל — לבחירתכם, שעתיים-שלוש. עולים חזרה למטוס וטסים חזרה להרצליה.</p>
         <div class="trip-breakdown">
           <div class="trip-row"><span data-i18n="trip.flightTime">זמן טיסה כולל</span><b>~1:00</b></div>
@@ -297,7 +297,7 @@
       </div>
       <div class="trip-card">
         <span class="trip-tag" data-i18n="trip.roshpina.tag">מטוס 172 · טיול גליל</span>
-        <h4 data-i18n="trip.roshpina.h">יום בראש פינה והגליל</h4>
+        <h4 data-i18n="trip.roshpina.h">ראש פינה והגליל</h4>
         <p data-i18n="trip.roshpina.p">טסים צפונה מעל עמק הירדן והכנרת אל ראש פינה — כ-45 דקות טיסה בכל כיוון. נוחתים בשדה התעופה ההיסטורי ויורדים לסיור: המושבה העתיקה עם הסמטאות והגלריות, יקב בוטיק ברמת הגולן, או שייט קצר בכנרת — כ-3-4 שעות לבחירתכם. חוזרים לשדה וטסים בחזרה להרצליה.</p>
         <div class="trip-breakdown">
           <div class="trip-row"><span data-i18n="trip.flightTime">זמן טיסה כולל</span><b>~1:30</b></div>
@@ -307,7 +307,7 @@
       </div>
       <div class="trip-card">
         <span class="trip-tag" data-i18n="trip.masada.tag">מטוס 172 · מדבר וים המלח</span>
-        <h4 data-i18n="trip.masada.h">יום במצדה וים המלח</h4>
+        <h4 data-i18n="trip.masada.h">מצדה וים המלח</h4>
         <p data-i18n="trip.masada.p">טסים דרומה מעל מדבר יהודה אל מנחת מצדה — כ-35 דקות טיסה בכל כיוון, עם נוף אווירי לים המלח שרק מעטים רואים. נוחתים ועולים ברכבל אל ההר המבודד והחפירות הארכיאולוגיות, ולסיום צפים בים המלח — כ-3-4 שעות. חוזרים למטוס וטסים בחזרה להרצליה.</p>
         <div class="trip-breakdown">
           <div class="trip-row"><span data-i18n="trip.flightTime">זמן טיסה כולל</span><b>~1:15</b></div>
@@ -385,12 +385,6 @@
     <div class="config-panel reveal">
       <div class="config-top">
         <div class="selected-type"><span data-i18n="config.selectedPrefixLabel">מסלול נבחר:</span> <b id="selectedTypeLabel">—</b></div>
-        <div class="price-readout">
-          <div class="plabel" data-i18n="config.priceLabel">מחיר משוער</div>
-          <div class="pnum" id="priceNum">₪0</div>
-          <div class="ptrust" data-i18n="config.priceTrust">מחיר שקוף · ללא עלויות נסתרות</div>
-          <div class="pbreak" id="priceBreakdown"></div>
-        </div>
       </div>
 
       <div class="aircraft-wrap">
@@ -420,16 +414,24 @@
         </div>
       </div>
 
-      <div class="gauge-wrap">
-        <div class="gauge-label-row">
-          <span class="glabel" data-i18n="config.durationLabel">משך זמן טיסה</span>
-          <span class="gval" id="durationVal">1:00 <span data-i18n="config.hours">שעות</span></span>
+      <div class="gauge-price-row">
+        <div class="gauge-wrap">
+          <div class="gauge-label-row">
+            <span class="glabel" data-i18n="config.durationLabel">משך זמן טיסה</span>
+            <span class="gval" id="durationVal">1:00 <span data-i18n="config.hours">שעות</span></span>
+          </div>
+          <div class="gauge-track">
+            <div class="gauge-ticks" id="gaugeTicks"></div>
+            <div class="gauge-base"></div>
+            <div class="gauge-fill" id="gaugeFill"></div>
+            <input type="range" class="gauge-input" id="durationSlider" min="0.5" max="4.5" step="0.25" value="1" aria-label="משך זמן טיסה בשעות">
+          </div>
         </div>
-        <div class="gauge-track">
-          <div class="gauge-ticks" id="gaugeTicks"></div>
-          <div class="gauge-base"></div>
-          <div class="gauge-fill" id="gaugeFill"></div>
-          <input type="range" class="gauge-input" id="durationSlider" min="0.5" max="4.5" step="0.25" value="1" aria-label="משך זמן טיסה בשעות">
+        <div class="price-readout">
+          <div class="plabel" data-i18n="config.priceLabel">מחיר משוער</div>
+          <div class="pnum" id="priceNum">₪0</div>
+          <div class="ptrust" data-i18n="config.priceTrust">מחיר שקוף · ללא עלויות נסתרות</div>
+          <div class="pbreak" id="priceBreakdown"></div>
         </div>
       </div>
 
@@ -739,7 +741,7 @@
           <h4>8. דין וסמכות שיפוט</h4>
           <p>על תנאים אלה יחול הדין הישראלי בלבד, וסמכות השיפוט הבלעדית בכל עניין הנוגע לאתר נתונה לבתי המשפט המוסמכים בישראל.</p>
           <h4>9. יצירת קשר</h4>
-          <p>לשאלות בנוגע לתנאים אלה ניתן לפנות אלינו בכתובת <a href="mailto:eladamira1305@gmail.com">eladamira1305@gmail.com</a>.</p>
+          <p>לשאלות בנוגע לתנאים אלה ניתן לפנות אלינו דרך <a href="index.html#contact">טופס יצירת הקשר באתר</a>.</p>
         </div>
         <div data-lang="en">
           <h3>Terms of Use — AMIRA AIRLINES</h3>
@@ -761,7 +763,7 @@
           <h4>8. Governing Law and Jurisdiction</h4>
           <p>These terms are governed solely by Israeli law, and exclusive jurisdiction over any matter related to the Site is granted to the competent courts in Israel.</p>
           <h4>9. Contact</h4>
-          <p>For questions about these terms, please contact us at <a href="mailto:eladamira1305@gmail.com">eladamira1305@gmail.com</a>.</p>
+          <p>For questions about these terms, please contact us via the <a href="index.html#contact">contact form on the site</a>.</p>
         </div>
       </div>
       <!-- PRIVACY POLICY -->
@@ -784,7 +786,7 @@
           <h4>7. אבטחת מידע</h4>
           <p>אנו נוקטים אמצעים סבירים ומקובלים כדי להגן על המידע שנמסר לנו, אך יש לזכור כי אין אבטחה מוחלטת בסביבה מקוונת.</p>
           <h4>8. יצירת קשר בנושאי פרטיות</h4>
-          <p>לשאלות, בקשות לעיון, תיקון או מחיקת מידע, ניתן לפנות אלינו בכתובת <a href="mailto:eladamira1305@gmail.com">eladamira1305@gmail.com</a>.</p>
+          <p>לשאלות, בקשות לעיון, תיקון או מחיקת מידע, ניתן לפנות אלינו דרך <a href="index.html#contact">טופס יצירת הקשר באתר</a>.</p>
         </div>
         <div data-lang="en">
           <h3>Privacy Policy — AMIRA AIRLINES</h3>
@@ -804,7 +806,7 @@
           <h4>7. Data Security</h4>
           <p>We take reasonable, accepted measures to protect the information provided to us, though no online environment offers absolute security.</p>
           <h4>8. Contact for Privacy Matters</h4>
-          <p>For questions, or requests to review, correct or delete information, please contact us at <a href="mailto:eladamira1305@gmail.com">eladamira1305@gmail.com</a>.</p>
+          <p>For questions, or requests to review, correct or delete information, please contact us via the <a href="index.html#contact">contact form on the site</a>.</p>
         </div>
 </div><!-- /.site-wrap -->
 
