@@ -42,7 +42,8 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
       window.dispatchEvent(new CustomEvent('amira-auth-ready'));
     }
 
-    async function forceSignOut(){
+    async function forceSignOut(reason){
+      console.warn('AMIRA auth: signing out --', reason);
       try{ await client.auth.signOut(); }catch(err){ /* ignore */ }
       localStorage.removeItem(LOGIN_TIME_KEY);
       applyAuthState(null);
@@ -58,7 +59,7 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
         localStorage.setItem(LOGIN_TIME_KEY, String(Date.now()));
         return;
       }
-      if((Date.now() - loginTime) / 3600000 > SESSION_HOURS) forceSignOut();
+      if((Date.now() - loginTime) / 3600000 > SESSION_HOURS) forceSignOut(`session older than ${SESSION_HOURS}h (loginTime=${loginTime}, now=${Date.now()})`);
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
@@ -92,9 +93,8 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
     // Supabase fires it with the correctly-restored session on every fresh page.
     client.auth.onAuthStateChange((_event, session) => applyAuthState(session));
 
-    // The 24h check runs independently, well after login is already showing the
-    // site, and again periodically -- it never blocks the initial view.
-    setTimeout(enforceSessionAge, 500);
+    // The 24h check runs independently, on a periodic timer -- it never blocks
+    // or delays the initial view, and only ever makes things more restrictive.
     setInterval(enforceSessionAge, 5 * 60 * 1000);
 
     return client;
