@@ -10,21 +10,37 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
 
   const authReady = (function(){
     if(SUPABASE_URL.includes('YOUR_PROJECT')){
-      // Not configured yet — fail safe by leaving the login gate up rather than exposing the site.
       document.getElementById('loginGate').classList.remove('checking');
       document.getElementById('loginError').textContent = 'ההתחברות טרם הוגדרה — פנה למנהל האתר.';
       document.getElementById('loginError').classList.add('show');
       return null;
     }
     if(typeof window.supabase === 'undefined'){
-      // The auth SDK failed to load (network issue, ad-blocker, etc.) — fail safe, not open.
       document.getElementById('loginGate').classList.remove('checking');
       document.getElementById('loginError').textContent = 'שירות ההתחברות לא נטען. רענן את הדף ונסה שוב.';
       document.getElementById('loginError').classList.add('show');
       return null;
     }
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.amiraDB = client; // exposed so app.js can query the database (reviews, etc.)
+    window.amiraDB = client;
+
+    // ---- Step 1: is there a session at all? This is the ONLY thing that decides
+    // whether the site is shown. Nothing else -- no custom timestamp, no extra
+    // condition -- is allowed to delay or block this. That separation is what
+    // removes the race conditions that were causing inconsistent login behavior.
+    function applyAuthState(session){
+      document.getElementById('loginGate').classList.remove('checking');
+      const loggedIn = !!session;
+      document.body.classList.toggle('authed', loggedIn);
+      if(!loggedIn){
+        document.body.classList.remove('is-admin');
+        window.amiraIsAdmin = false;
+        return;
+      }
+      window.amiraIsAdmin = session.user?.user_metadata?.role === 'admin';
+      document.body.classList.toggle('is-admin', window.amiraIsAdmin);
+      window.dispatchEvent(new CustomEvent('amira-auth-ready'));
+    }
 
     async function forceSignOut(){
       try{ await client.auth.signOut(); }catch(err){ /* ignore */ }
@@ -32,29 +48,17 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
       applyAuthState(null);
     }
 
-    // Single source of truth for reflecting auth state into the page. Supabase guarantees
-    // onAuthStateChange fires an INITIAL_SESSION event with the correctly-restored session
-    // (if any) as soon as the client finishes initializing -- this avoids a race where a
-    // separate getSession() call could run too early and miss a persisted session on
-    // page load / navigation, which is what was causing the repeated login prompts.
-    function applyAuthState(session){
-      document.getElementById('loginGate').classList.remove('checking');
-      if(!session){
-        document.body.classList.remove('authed');
-        document.body.classList.remove('is-admin');
-        window.amiraIsAdmin = false;
-        return;
-      }
+    // ---- Step 2: the 24h cutoff is a completely separate, additive check.
+    // It can only ever make things MORE restrictive (sign out once genuinely
+    // past the cutoff) -- it never participates in deciding whether a fresh,
+    // valid session gets shown.
+    function enforceSessionAge(){
       const loginTime = parseInt(localStorage.getItem(LOGIN_TIME_KEY) || '0', 10);
-      const hoursElapsed = (Date.now() - loginTime) / 3600000;
-      if(!loginTime || hoursElapsed > SESSION_HOURS){
-        forceSignOut();
+      if(!loginTime){
+        localStorage.setItem(LOGIN_TIME_KEY, String(Date.now()));
         return;
       }
-      window.amiraIsAdmin = session.user?.user_metadata?.role === 'admin';
-      document.body.classList.toggle('is-admin', window.amiraIsAdmin);
-      document.body.classList.add('authed');
-      window.dispatchEvent(new CustomEvent('amira-auth-ready'));
+      if((Date.now() - loginTime) / 3600000 > SESSION_HOURS) forceSignOut();
     }
 
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
@@ -79,23 +83,20 @@ const SUPABASE_URL = 'https://gyxxyodzsqcnvgufubpo.supabase.co';
         errEl.classList.add('show');
       } else {
         localStorage.setItem(LOGIN_TIME_KEY, String(Date.now()));
-        // Use this response's own fresh user data right away, rather than waiting on
-        // onAuthStateChange to fire, which can lag a beat behind on first login.
         applyAuthState(data.session);
       }
     });
 
-    // onAuthStateChange fires an INITIAL_SESSION event automatically on setup with
-    // the correctly-restored session (if any) -- this is what makes login persist
-    // correctly across page refreshes and navigation to admin.html.
+    // This single listener is the one and only place that reacts to auth state,
+    // for every case: initial page load, login, logout, and token refresh.
+    // Supabase fires it with the correctly-restored session on every fresh page.
     client.auth.onAuthStateChange((_event, session) => applyAuthState(session));
 
-    // Re-check every few minutes while the tab stays open, so the 24h cutoff
-    // still kicks in even if nobody reloads the page.
-    setInterval(async () => {
-      const { data: { session } } = await client.auth.getSession();
-      applyAuthState(session);
-    }, 5 * 60 * 1000);
+    // The 24h check runs independently, well after login is already showing the
+    // site, and again periodically -- it never blocks the initial view.
+    setTimeout(enforceSessionAge, 500);
+    setInterval(enforceSessionAge, 5 * 60 * 1000);
+
     return client;
   })();
 
