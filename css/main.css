@@ -1,4 +1,4 @@
-  :root{
+:root{
     --bg:#0a0a0b;
     --bg-alt:#111113;
     --panel:#16161a;
@@ -209,18 +209,33 @@
     padding:56px;
     box-shadow:var(--shadow);
   }
-  .config-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:44px;flex-wrap:wrap;gap:20px;}
+  .config-top{margin-bottom:36px;}
   .config-top .selected-type{font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.05em;}
   .config-top .selected-type b{color:var(--ivory);}
+
+  .gauge-price-row{display:flex;align-items:stretch;gap:36px;margin-bottom:50px;}
+  .gauge-price-row .gauge-wrap{flex:1 1 auto;margin-bottom:0;min-width:0;}
+  .gauge-price-row .price-readout{
+    flex:0 0 auto;border-inline-start:1px solid var(--hairline);padding-inline-start:36px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
   .price-readout{text-align:left;}
   body.en .price-readout{text-align:right;}
   .price-readout .plabel{font-family:var(--mono);font-size:0.6875rem;letter-spacing:0.25em;color:var(--muted);text-transform:uppercase;}
-  .price-readout .pnum{font-family:var(--mono);font-size:2.6rem;color:var(--gold);line-height:1;margin-top:6px;}
+  .price-readout .pnum{font-family:var(--mono);font-size:2.6rem;color:var(--gold);line-height:1;margin-top:6px;white-space:nowrap;}
   .price-readout .ptrust{font-family:var(--mono);font-size:0.6875rem;color:var(--muted);margin-top:8px;letter-spacing:0.02em;}
   .price-readout .pbreak{font-family:var(--mono);font-size:0.6875rem;color:var(--gold-bright);margin-top:6px;display:none;}
   .price-readout .pbreak.show{display:block;}
 
   .gauge-wrap{margin-bottom:50px;}
+  @media (max-width:760px){
+    .gauge-price-row{flex-direction:column;gap:28px;}
+    .gauge-price-row .price-readout{
+      border-inline-start:none;padding-inline-start:0;border-top:1px solid var(--hairline);padding-top:24px;
+      text-align:center;align-items:center;
+    }
+    body.en .gauge-price-row .price-readout{text-align:center;}
+  }
 
   .aircraft-wrap{margin-bottom:38px;}
   .aircraft-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
